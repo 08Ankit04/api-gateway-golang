@@ -1,0 +1,5 @@
+FROM envoyproxy/envoy:latest
+WORKDIR /github.com/api-gateway-golang
+
+
+COPY docker/envoy/envoy.yaml /etc/envoy/envoy.yaml

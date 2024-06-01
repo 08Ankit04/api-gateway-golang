@@ -38,8 +38,8 @@ This project implements an API Gateway using Go, providing features such as rout
 
 1. **Clone the Repository:**
     ```sh
-    git clone https://github.com/yourusername/go-api-gateway.git
-    cd go-api-gateway
+    git clone https://github.com/api-gateway-golang/go-api-gateway.git
+    cd github.com/api-gateway-golang
     ```
 
 2. **Set Up Environment Variables:**

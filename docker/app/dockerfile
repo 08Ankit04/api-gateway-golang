@@ -1,0 +1,16 @@
+FROM golang:1.22.1-alpine
+WORKDIR /github.com/api-gateway-golang
+
+RUN apk --update-cache add gcc musl-dev tzdata \
+  && cp /usr/share/zoneinfo/Asia/Kolkata /etc/localtime \
+  && apk del tzdata \
+  && rm -rf /var/cache/apk/*
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN go build -ldflags '-w -s' -a -o ./bin/app ./cmd/app
+
+RUN chmod +x /github.com/api-gateway-golang/docker/app/bin/* && chmod +x /github.com/api-gateway-golang/bin/*
