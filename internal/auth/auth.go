@@ -9,6 +9,18 @@ import (
 	"github.com/gorilla/context"
 )
 
+const (
+	headerAuthorization = "Authorization"
+	headerPrefixBearer  = "Bearer "
+
+	tokenExpirationDuration = 24 * time.Hour
+
+	ctxKeyUsername = "username"
+
+	errMissingToken = "error missing token"
+	errInvalidToken = "error invalid token"
+)
+
 // Config holds the configuration for JWT
 type Config struct {
 	Secret string
@@ -29,7 +41,7 @@ func Initialize(secret string) {
 
 // GenerateToken generates a new JWT token
 func GenerateToken(username string) (string, error) {
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expirationTime := time.Now().Add(tokenExpirationDuration)
 	claims := &Claims{
 		Username: username,
 		StandardClaims: jwt.StandardClaims{
@@ -62,21 +74,21 @@ func ValidateToken(tokenStr string) (*Claims, error) {
 // Middleware is the authentication middleware
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenStr := r.Header.Get("Authorization")
+		tokenStr := r.Header.Get(headerAuthorization)
 		if tokenStr == "" {
-			http.Error(w, "Missing token", http.StatusUnauthorized)
+			http.Error(w, errMissingToken, http.StatusUnauthorized)
 			return
 		}
 
-		tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
+		tokenStr = strings.TrimPrefix(tokenStr, headerPrefixBearer)
 
 		claims, err := ValidateToken(tokenStr)
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			http.Error(w, errInvalidToken, http.StatusUnauthorized)
 			return
 		}
 
-		context.Set(r, "username", claims.Username)
+		context.Set(r, ctxKeyUsername, claims.Username)
 		next.ServeHTTP(w, r)
 	})
 }
