@@ -16,6 +16,11 @@ var (
 	window      time.Duration
 )
 
+const (
+	errInternalServerError = "Internal server error"
+	errTooManyRequests     = "Too many requests"
+)
+
 // Initialize sets the Redis client and rate limiting parameters
 func Initialize(redisAddr string, requestLimit int, timeWindow int) {
 	redisClient = redis.NewClient(&redis.Options{
@@ -35,21 +40,21 @@ func Middleware(next http.Handler) http.Handler {
 		if err == redis.Nil {
 			// New IP, create a new limiter
 			if err := redisClient.Set(ctx, ip, "1", window).Err(); err != nil {
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				http.Error(w, errInternalServerError, http.StatusInternalServerError)
 				return
 			}
 		} else if err == nil {
 			count, _ := strconv.Atoi(val)
 			if count >= limit {
-				http.Error(w, "Too many requests", http.StatusTooManyRequests)
+				http.Error(w, errTooManyRequests, http.StatusTooManyRequests)
 				return
 			}
 			if err := redisClient.Incr(ctx, ip).Err(); err != nil {
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				http.Error(w, errInternalServerError, http.StatusInternalServerError)
 				return
 			}
 		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			http.Error(w, errInternalServerError, http.StatusInternalServerError)
 			return
 		}
 

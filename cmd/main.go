@@ -14,6 +14,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	filePathConfig    = "config.yaml"
+	ServerPortDefault = "8080"
+
+	errEnvFileNotFound   = "Error No .env file found"
+	errReadingConfigFile = "Error reading config file: %v"
+	errParsingConfigFile = "Error parsing config file: %v"
+)
+
 type Config struct {
 	Server struct {
 		Port string `yaml:"port"`
@@ -39,16 +48,16 @@ var (
 
 func init() {
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
+		log.Println(errEnvFileNotFound)
 	}
 
-	data, err := os.ReadFile("config.yaml")
+	data, err := os.ReadFile(filePathConfig)
 	if err != nil {
-		log.Fatalf("Error reading config file: %v", err)
+		log.Fatalf(errReadingConfigFile, err)
 	}
 
 	if err := yaml.Unmarshal(data, &config); err != nil {
-		log.Fatalf("Error parsing config file: %v", err)
+		log.Fatalf(errParsingConfigFile, err)
 	}
 
 	auth.Initialize(config.JWT.Secret)
@@ -66,7 +75,7 @@ func main() {
 
 	port := config.Server.Port
 	if port == "" {
-		port = "8080"
+		port = ServerPortDefault
 	}
 
 	log.Printf("Starting server on port %s", port)

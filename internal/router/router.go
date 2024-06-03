@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
@@ -8,6 +9,11 @@ import (
 	"github.com/api-gateway-golang/internal/logger"
 	"github.com/api-gateway-golang/internal/rate_limit"
 	"github.com/gorilla/mux"
+)
+
+const (
+	errInternalServerError = "Internal server error"
+	errServiceUnavailable  = "Service unavailable error"
 )
 
 // Route defines the structure for an API route
@@ -32,10 +38,10 @@ func InitializeRouter(routes []Route) *mux.Router {
 // proxy function to forward requests to the appropriate microservice
 func proxy(service string, port int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		url := "http://" + service + ":" + string(port) + r.RequestURI
+		url := "http://" + service + ":" + fmt.Sprint(port) + r.RequestURI
 		req, err := http.NewRequest(r.Method, url, r.Body)
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			http.Error(w, errInternalServerError, http.StatusInternalServerError)
 			return
 		}
 
@@ -43,7 +49,7 @@ func proxy(service string, port int) http.Handler {
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
+			http.Error(w, errServiceUnavailable, http.StatusServiceUnavailable)
 			return
 		}
 		defer resp.Body.Close()
@@ -56,7 +62,7 @@ func proxy(service string, port int) http.Handler {
 		w.WriteHeader(resp.StatusCode)
 		_, err = w.Write(respBody)
 		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			http.Error(w, errInternalServerError, http.StatusInternalServerError)
 			return
 		}
 	})
