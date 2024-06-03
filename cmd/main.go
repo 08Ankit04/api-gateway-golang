@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/api-gateway-golang/internal/auth"
+	"github.com/api-gateway-golang/internal/model"
 	"github.com/api-gateway-golang/internal/rate_limit"
 	internalRouter "github.com/api-gateway-golang/internal/router"
 
@@ -23,27 +24,8 @@ const (
 	errParsingConfigFile = "Error parsing config file: %v"
 )
 
-type Config struct {
-	Server struct {
-		Port string `yaml:"port"`
-	} `yaml:"server"`
-	JWT struct {
-		Secret string `yaml:"secret"`
-	} `yaml:"jwt"`
-	RateLimiting struct {
-		RedisAddr    string `yaml:"redis_addr"`
-		RequestLimit int    `yaml:"request_limit"`
-		TimeWindow   int    `yaml:"time_window"`
-	} `yaml:"rate_limiting"`
-	Routes []struct {
-		Path        string `yaml:"path"`
-		Service     string `yaml:"service"`
-		ServicePort int    `yaml:"service_port"`
-	} `yaml:"routes"`
-}
-
 var (
-	config Config
+	config model.Config
 )
 
 func init() {
@@ -67,9 +49,9 @@ func init() {
 func main() {
 	// Initialize the router with the configured routes
 
-	routes := []internalRouter.Route{}
+	routes := []model.Route{}
 	for _, r := range config.Routes {
-		routes = append(routes, internalRouter.Route{Path: r.Path, Service: r.Service, ServicePort: r.ServicePort})
+		routes = append(routes, model.Route{Path: r.Path, Service: r.Service, ServicePort: r.ServicePort})
 	}
 	r := internalRouter.InitializeRouter(routes)
 

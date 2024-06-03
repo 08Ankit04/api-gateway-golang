@@ -7,6 +7,7 @@ import (
 
 	"github.com/api-gateway-golang/internal/auth"
 	"github.com/api-gateway-golang/internal/logger"
+	"github.com/api-gateway-golang/internal/model"
 	"github.com/api-gateway-golang/internal/rate_limit"
 	"github.com/gorilla/mux"
 )
@@ -16,15 +17,8 @@ const (
 	errServiceUnavailable  = "Service unavailable error"
 )
 
-// Route defines the structure for an API route
-type Route struct {
-	Path        string
-	Service     string
-	ServicePort int
-}
-
 // InitializeRouter sets up the router with the given routes and applies middleware
-func InitializeRouter(routes []Route) *mux.Router {
+func InitializeRouter(routes []model.Route) *mux.Router {
 	router := mux.NewRouter()
 
 	for _, route := range routes {
