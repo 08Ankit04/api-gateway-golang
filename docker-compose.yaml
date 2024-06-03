@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    env_file:
+      - ./docker/app/.env
+    ports:
+      - "8080:8080"
+    labels:
+      namespace: api-gateway-golang
+      name: api-gateway-golang
+    depends_on:
+      - redis
+    command: /bin/sh -c './docker/app/bin/init.sh;'
+    restart: always
+
+  redis:
+    container_name: redis-chessplay_backend
+    image: redis:alpine
+    # Specify the redis.conf file to use and add a password.
+    command: ["redis-server", "--requirepass", "vFhu32LwMlY35etMdt4fdsf4Es3r"]
+    ports: 
+      - "6379:6379"
+
+  envoy:
+    build:
+      context: .
+      dockerfile: ./docker/envoy/Dockerfile
+    volumes:
+      - .docker/envoy/envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      - envoymesh
+    expose:
+      - "8080"
+      - "9901"
+    ports:
+      - "8080:8080"
+      - "9901:9901"
